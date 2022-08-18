@@ -59,7 +59,7 @@ pub fn try_get_vec_from_bn_prop(object_jsv : &JsValue, prop : &str) -> Result<Ve
     Ok(array.to_vec())
 }
 
-pub fn try_get_pubkey_from_bn(bn_jsv : &JsValue) -> Result<Vec<u8>, JsValue> {
+pub fn try_get_vec_from_bn(bn_jsv : &JsValue) -> Result<Vec<u8>, JsValue> {
 
     let bytes = apply_with_args0(&bn_jsv, "toBytes" )?;
     let array = Uint8Array::new(&bytes);
