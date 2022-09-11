@@ -26,14 +26,22 @@ pub fn apply_with_args2(this_jsv: &JsValue, fn_name: &str, arg_jsv : JsValue, ar
 
 /// Returns successfully parsed value or 0
 pub fn try_get_u64_from_prop(jsv : &JsValue, prop : &str) -> Result<u64,JsValue> {
-    Ok(js_sys::Reflect::get(&jsv,&JsValue::from(prop))?.as_f64()
-        .ok_or(JsValue::from(format!("try_get_u64(): error parsing {}",prop)))?
+    let v = js_sys::Reflect::get(&jsv,&JsValue::from(prop))?;
+    Ok(v.as_f64()
+        .ok_or(JsValue::from(format!("try_get_u64(): error parsing property '{}' with value '{:?}'",prop,v)))?
         as u64
     )
 }
+pub fn try_get_f64_from_prop(jsv : &JsValue, prop : &str) -> Result<f64,JsValue> {
+    let v = js_sys::Reflect::get(&jsv,&JsValue::from(prop))?;
+    Ok(v.as_f64()
+        .ok_or(JsValue::from(format!("try_get_f64(): error parsing property '{}' with value '{:?}'",prop,v)))?
+    )
+}
 pub fn try_get_u8_from_prop(jsv : &JsValue, prop : &str) -> Result<u8,JsValue> {
-    Ok(js_sys::Reflect::get(&jsv,&JsValue::from(prop))?.as_f64()
-        .ok_or(JsValue::from(format!("try_get_u8(): error parsing {}",prop)))?
+    let v = js_sys::Reflect::get(&jsv,&JsValue::from(prop))?;
+    Ok(v.as_f64()
+        .ok_or(JsValue::from(format!("try_get_u8(): error parsing property '{}' with value '{:?}'",prop,v)))?
         as u8
     )
 }
@@ -75,3 +83,9 @@ pub fn try_get_string(jsv : &JsValue, prop : &str) -> Result<String, JsValue> {
         }
     }
 }
+
+pub fn try_get_js_value(this_jsv:&JsValue, prop:&str)->Result<JsValue,JsValue> {
+    let v = js_sys::Reflect::get(&this_jsv, &JsValue::from(prop))?;
+    Ok(v)
+}
+
