@@ -11,7 +11,7 @@ pub struct Listener<T>{
 impl<T> Clone for Listener<T>{
     fn clone(&self) -> Self {
         Self { closure: self.closure.clone() }
-     }
+    }
 }
 
 impl<T> Listener<T>
