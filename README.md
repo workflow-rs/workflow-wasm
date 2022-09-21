@@ -6,7 +6,9 @@ Part of the [WORKFLOW-RS](https://github.com/workflow-rs) application framework.
 
 WASM (browser) functionality
 
-Platforms supported: WASM (browser)
+[![Crates.io](https://img.shields.io/crates/l/workflow-wasm.svg?maxAge=2592000)](https://crates.io/crates/workflow-wasm)
+[![Crates.io](https://img.shields.io/crates/v/workflow-wasm.svg?maxAge=2592000)](https://crates.io/crates/workflow-wasm)
+![platform](https://img.shields.io/badge/platform-Web%20%28wasm32%29-informational)
 
 ## Features
 
