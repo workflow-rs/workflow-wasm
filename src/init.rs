@@ -10,7 +10,7 @@ pub fn init_workflow(workflow: &JsValue, modules: &JsValue) -> std::result::Resu
 }
 
 pub fn global() -> std::result::Result<JsValue,JsValue> {
-    Ok(js_sys::Reflect::get(&js_sys::global(), &"$workflow".into())?)
+    Ok(js_sys::Reflect::get(&js_sys::global(), &"$workflow$".into())?)
 }
 
 pub fn workflow() -> std::result::Result<JsValue,JsValue> {
