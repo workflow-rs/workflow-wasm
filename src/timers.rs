@@ -1,5 +1,5 @@
 use std::sync::{Arc, Mutex};
-use wasm_bindgen::prelude::*;
+use wasm_bindgen::{prelude::*, JsCast};
 use thiserror::Error;
 
 #[derive(Error, Debug)]
@@ -21,18 +21,19 @@ impl From<JsValue> for Error {
 }
 
 pub mod native {
+    use js_sys::Function;
     use wasm_bindgen::prelude::*;
     #[wasm_bindgen]
     extern "C" {
 
         #[wasm_bindgen (catch, js_name = setInterval)]
-        pub fn set_interval(closure: &Closure<dyn FnMut()>, timeout: u32 ) -> std::result::Result<u32, JsValue>;
+        pub fn set_interval(closure: &Function, timeout: u32 ) -> std::result::Result<u32, JsValue>;
 
         #[wasm_bindgen (catch, js_name = clearInterval)]
         pub fn clear_interval(interval: u32) -> std::result::Result<(), JsValue>;
 
         #[wasm_bindgen (catch, js_name = setTimeout)]
-        pub fn set_timeout(closure: &Closure<dyn FnMut()>, timeout: u32) -> std::result::Result<u32, JsValue>;
+        pub fn set_timeout(closure: &Function, timeout: u32) -> std::result::Result<u32, JsValue>;
 
         #[wasm_bindgen (catch, js_name = clearTimeout)]
         pub fn clear_timeout(interval: u32) -> std::result::Result<(), JsValue>;
@@ -40,7 +41,7 @@ pub mod native {
     }
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct IntervalHandle(Arc<Mutex<u32>>);
 
 impl Drop for IntervalHandle
@@ -68,7 +69,7 @@ impl Drop for TimeoutHandle
 
 
 pub fn set_interval(closure: &Closure<dyn FnMut()>, timeout: u32 ) -> Result<IntervalHandle,Error> {
-    let handle = native::set_interval(closure,timeout)?;
+    let handle = native::set_interval(closure.as_ref().unchecked_ref(),timeout)?;
     Ok(IntervalHandle(Arc::new(Mutex::new(handle))))
 }
 
@@ -84,7 +85,7 @@ pub fn clear_interval(handle: &IntervalHandle) -> Result<(),Error> {
 }
 
 pub fn set_timeout(closure: &Closure<dyn FnMut()>, timeout: u32) -> Result<TimeoutHandle,Error> {
-    let handle = native::set_timeout(closure,timeout)?;
+    let handle = native::set_timeout(closure.as_ref().unchecked_ref(),timeout)?;
     Ok(TimeoutHandle(Arc::new(Mutex::new(handle))))    
 }
 
