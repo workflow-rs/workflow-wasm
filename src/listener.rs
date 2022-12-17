@@ -9,8 +9,6 @@ use thiserror::Error;
 
 #[derive(Error, Debug)]
 pub enum Error{
-    #[error("ClosureMismatch")]
-    ClosureMismatch,
 
     #[error("String {0:?}")]
     String(String),
@@ -36,6 +34,9 @@ impl From<String> for Error{
         Self::String(str)
     }
 }
+
+pub type Callback<T> = dyn FnMut(T) -> std::result::Result<(), JsValue>;
+pub type CallbackWithouResult<T> = dyn FnMut(T);
 
 #[derive(Debug)]
 pub struct Listener<T: ?Sized>{
@@ -66,17 +67,6 @@ where T: ?Sized + WasmClosure + 'static
         }
     }
 
-    pub fn callback<F>(&mut self, t:F)
-    where F: IntoWasmClosure<T> + 'static
-    {
-        let closure = Closure::new(t);
-        let closure_js_value = closure.as_ref().clone();
-        //let c = ClosureType::WithResult(Arc::new(closure));
-
-        *self.closure.lock().unwrap() = Some(Arc::new(closure));
-        self.closure_js_value = closure_js_value;
-    }
-
     pub fn with_callback<F>(t:F)->Self
     where F: IntoWasmClosure<T> + 'static
     {
@@ -87,6 +77,17 @@ where T: ?Sized + WasmClosure + 'static
             closure: Arc::new(Mutex::new(Some(Arc::new(closure)))),
             closure_js_value
         }
+    }
+
+    pub fn callback<F>(&mut self, t:F)
+    where F: IntoWasmClosure<T> + 'static
+    {
+        let closure = Closure::new(t);
+        let closure_js_value = closure.as_ref().clone();
+        //let c = ClosureType::WithResult(Arc::new(closure));
+
+        *self.closure.lock().unwrap() = Some(Arc::new(closure));
+        self.closure_js_value = closure_js_value;
     }
 
     pub fn into_js<J>(&self) -> &J
