@@ -1,8 +1,10 @@
-use wasm_bindgen::{JsValue, JsCast, closure::Closure, convert::FromWasmAbi};
+use wasm_bindgen::{
+    JsValue,
+    JsCast,
+    closure::{Closure, WasmClosure, IntoWasmClosure}
+};
 use workflow_core::id::Id;
 use std::sync::{Arc, Mutex};
-//use crate::Result;
-type Result<T> = std::result::Result<T,JsValue>;
 use thiserror::Error;
 
 #[derive(Error, Debug)]
@@ -35,34 +37,14 @@ impl From<String> for Error{
     }
 }
 
-
 #[derive(Debug)]
-pub enum ClosureType<T>{
-    WithResult(Arc<Closure<dyn FnMut(T)->Result<()>>>),
-    WithoutResult(Arc<Closure<dyn FnMut(T)>>)
-}
-
-impl<T> Clone for ClosureType<T>{
-    fn clone(&self) -> Self {
-        match self {
-            ClosureType::WithResult(c)=>{
-                ClosureType::WithResult(c.clone())
-            }
-            ClosureType::WithoutResult(c)=>{
-                ClosureType::WithoutResult(c.clone())
-            }
-        }
-    }
-}
-
-#[derive(Debug)]
-pub struct Listener<T>{
+pub struct Listener<T: ?Sized>{
     id: Id,
-    closure: Arc<Mutex<Option<ClosureType<T>>>>,
+    closure: Arc<Mutex<Option<Arc<Closure<T>>>>>,
     closure_js_value: JsValue
 }
 
-impl<T> Clone for Listener<T>{
+impl<T:?Sized> Clone for Listener<T>{
     fn clone(&self) -> Self {
         Self {
             id: self.id,
@@ -73,7 +55,7 @@ impl<T> Clone for Listener<T>{
 }
 
 impl<T> Listener<T>
-where T: Sized + FromWasmAbi + 'static
+where T: ?Sized + WasmClosure + 'static
 {
 
     pub fn new()->Self{
@@ -85,36 +67,24 @@ where T: Sized + FromWasmAbi + 'static
     }
 
     pub fn callback<F>(&mut self, t:F)
-    where F: FnMut(T)->Result<()> + 'static
+    where F: IntoWasmClosure<T> + 'static
     {
         let closure = Closure::new(t);
         let closure_js_value = closure.as_ref().clone();
-        let c = ClosureType::WithResult(Arc::new(closure));
+        //let c = ClosureType::WithResult(Arc::new(closure));
 
-        *self.closure.lock().unwrap() = Some(c);
-        self.closure_js_value = closure_js_value;
-    }
-
-    pub fn callback_without_result<F>(&mut self, t:F)
-    where F: FnMut(T) + 'static
-    {
-        let closure = Closure::new(t);
-        let closure_js_value = closure.as_ref().clone();
-        let c = ClosureType::WithoutResult(Arc::new(closure));
-
-        *self.closure.lock().unwrap() = Some(c);
+        *self.closure.lock().unwrap() = Some(Arc::new(closure));
         self.closure_js_value = closure_js_value;
     }
 
     pub fn with_callback<F>(t:F)->Self
-    where F: FnMut(T)->Result<()> + 'static
+    where F: IntoWasmClosure<T> + 'static
     {
         let closure = Closure::new(t);
         let closure_js_value = closure.as_ref().clone();
-        let c = ClosureType::WithResult(Arc::new(closure));
         Self{
             id: Id::new(),
-            closure: Arc::new(Mutex::new(Some(c))),
+            closure: Arc::new(Mutex::new(Some(Arc::new(closure)))),
             closure_js_value
         }
     }
@@ -125,13 +95,13 @@ where T: Sized + FromWasmAbi + 'static
         self.closure_js_value.as_ref().unchecked_ref()
     }
 
-    pub fn closure(&self) -> std::result::Result<ClosureType<T>, Error>
+    pub fn closure(&self) -> std::result::Result<Arc<Closure<T>>, Error>
     {
         match self.closure.lock(){
             Ok(locked)=>{
                 match locked.as_ref(){
                     Some(c)=>{
-                        Ok((*c).clone())
+                        Ok(c.clone())
                     }
                     None=>{
                         return Err(Error::ClosureNotIntialized)
@@ -140,30 +110,6 @@ where T: Sized + FromWasmAbi + 'static
             }
             Err(err)=>{
                 return Err(Error::LockError(err.to_string()))
-            }
-        }
-    }
-
-    pub fn closure_with_result(&self) -> std::result::Result<Arc<Closure<dyn FnMut(T)->Result<()> + 'static>>, Error>
-    {
-        match self.closure()?{
-            ClosureType::WithResult(c)=>{
-                Ok(c)
-            }
-            ClosureType::WithoutResult(_)=>{
-                return Err(Error::ClosureMismatch)
-            }
-        }
-    }
-
-    pub fn closure_without_result(&self) -> std::result::Result<Arc<Closure<dyn FnMut(T) + 'static>>, Error>
-    {
-        match self.closure()?{
-            ClosureType::WithResult(_)=>{
-                return Err(Error::ClosureMismatch)
-            }
-            ClosureType::WithoutResult(c)=>{
-                Ok(c)
             }
         }
     }
