@@ -38,12 +38,25 @@ impl From<String> for Error{
 pub type Callback<T> = dyn FnMut(T) -> std::result::Result<(), JsValue>;
 pub type CallbackWithouResult<T> = dyn FnMut(T);
 
+pub trait CallbackListener{
+    fn get_id(&self)->Id;
+}
+
 #[derive(Debug)]
 pub struct Listener<T: ?Sized>{
     id: Id,
     closure: Arc<Mutex<Option<Arc<Closure<T>>>>>,
     closure_js_value: JsValue
 }
+
+impl<T> CallbackListener for Listener<T>
+where T: ?Sized + WasmClosure + 'static
+{
+    fn get_id(&self)->Id{
+        self.id
+    }
+}
+
 
 impl<T:?Sized> Clone for Listener<T>{
     fn clone(&self) -> Self {
@@ -70,6 +83,7 @@ where T: ?Sized + WasmClosure + 'static
     pub fn with_callback<F>(t:F)->Self
     where F: IntoWasmClosure<T> + 'static
     {
+        /*
         let closure = Closure::new(t);
         let closure_js_value = closure.as_ref().clone();
         Self{
@@ -77,6 +91,11 @@ where T: ?Sized + WasmClosure + 'static
             closure: Arc::new(Mutex::new(Some(Arc::new(closure)))),
             closure_js_value
         }
+        */
+        let mut listener = Self::new();
+        listener.callback(t);
+
+        listener
     }
 
     pub fn callback<F>(&mut self, t:F)
