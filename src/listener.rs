@@ -1,3 +1,9 @@
+//! 
+//! Listener is a callback wrapper that owns a given rust closure
+//! meant to be bound to JavaScript as callbacks. 
+//! 
+//! 
+
 use wasm_bindgen::{
     JsValue,
     JsCast,

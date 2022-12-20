@@ -1,3 +1,8 @@
+//!
+//! Interval and Timeout functions that return an [`IntervalHandle`] or [`TimeoutHandle`] handles
+//! dropping which results in automatic clearing of the respective timeout or interval.
+//! 
+
 use std::sync::{Arc, Mutex};
 use wasm_bindgen::{prelude::*, JsCast};
 use thiserror::Error;
@@ -41,6 +46,7 @@ pub mod native {
     }
 }
 
+/// JavaScript interval handle dropping which stops and clears the associated interval
 #[derive(Clone, Debug)]
 pub struct IntervalHandle(Arc<Mutex<u32>>);
 
@@ -54,6 +60,7 @@ impl Drop for IntervalHandle
     }
 }
 
+/// JavaScript timeout handle, droppping which cancels the associated timeout.
 #[derive(Clone)]
 pub struct TimeoutHandle(Arc<Mutex<u32>>);
 
@@ -67,12 +74,13 @@ impl Drop for TimeoutHandle
     }
 }
 
-
+/// Create JavaScript interval
 pub fn set_interval(closure: &Closure<dyn FnMut()>, timeout: u32 ) -> Result<IntervalHandle,Error> {
     let handle = native::set_interval(closure.as_ref().unchecked_ref(),timeout)?;
     Ok(IntervalHandle(Arc::new(Mutex::new(handle))))
 }
 
+/// Clear JavaScript interval using a handle returned by [`set_interval`]
 pub fn clear_interval(handle: &IntervalHandle) -> Result<(),Error> {
     let mut handle = handle.0.lock().unwrap();
     if *handle != 0 {
@@ -84,11 +92,13 @@ pub fn clear_interval(handle: &IntervalHandle) -> Result<(),Error> {
     }
 }
 
+/// Create JavaScript timeout
 pub fn set_timeout(closure: &Closure<dyn FnMut()>, timeout: u32) -> Result<TimeoutHandle,Error> {
     let handle = native::set_timeout(closure.as_ref().unchecked_ref(),timeout)?;
     Ok(TimeoutHandle(Arc::new(Mutex::new(handle))))    
 }
 
+/// Clear JavaScript timeout using a handle returns by [`set_timeout`]
 pub fn clear_timeout(handle: &TimeoutHandle) -> Result<(),Error> {
     let mut handle = handle.0.lock().unwrap();
     if *handle != 0 {

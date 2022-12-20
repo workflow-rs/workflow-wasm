@@ -1,3 +1,7 @@
+//!
+//! Workflow RS framework initializers
+//! 
+
 use wasm_bindgen::prelude::*;
 
 #[wasm_bindgen(js_name="init_workflow")]
