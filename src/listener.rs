@@ -1,5 +1,5 @@
 //! 
-//! Listener is a callback wrapper that owns a given rust closure
+//! Callback is a callback wrapper that owns a given rust closure
 //! meant to be bound to JavaScript as callbacks. 
 //! 
 //! 
@@ -41,21 +41,21 @@ impl From<String> for Error{
     }
 }
 
-pub type Callback<T> = dyn FnMut(T) -> std::result::Result<(), JsValue>;
-pub type CallbackWithouResult<T> = dyn FnMut(T);
+pub type CallbackClosure<T> = dyn FnMut(T) -> std::result::Result<(), JsValue>;
+pub type CallbackClosureWithoutResult<T> = dyn FnMut(T);
 
-pub trait CallbackListener{
+pub trait Listener{
     fn get_id(&self)->Id;
 }
 
 #[derive(Debug)]
-pub struct Listener<T: ?Sized>{
+pub struct Callback<T: ?Sized>{
     id: Id,
     closure: Arc<Mutex<Option<Arc<Closure<T>>>>>,
     closure_js_value: JsValue
 }
 
-impl<T> CallbackListener for Listener<T>
+impl<T> Listener for Callback<T>
 where T: ?Sized + WasmClosure + 'static
 {
     fn get_id(&self)->Id{
@@ -64,7 +64,7 @@ where T: ?Sized + WasmClosure + 'static
 }
 
 
-impl<T:?Sized> Clone for Listener<T>{
+impl<T:?Sized> Clone for Callback<T>{
     fn clone(&self) -> Self {
         Self {
             id: self.id,
@@ -74,7 +74,7 @@ impl<T:?Sized> Clone for Listener<T>{
     }
 }
 
-impl<T> Listener<T>
+impl<T> Callback<T>
 where T: ?Sized + WasmClosure + 'static
 {
 
@@ -86,30 +86,20 @@ where T: ?Sized + WasmClosure + 'static
         }
     }
 
-    pub fn with_callback<F>(t:F)->Self
+    pub fn with_closure<F>(t:F)->Self
     where F: IntoWasmClosure<T> + 'static
     {
-        /*
-        let closure = Closure::new(t);
-        let closure_js_value = closure.as_ref().clone();
-        Self{
-            id: Id::new(),
-            closure: Arc::new(Mutex::new(Some(Arc::new(closure)))),
-            closure_js_value
-        }
-        */
         let mut listener = Self::new();
-        listener.callback(t);
+        listener.set_closure(t);
 
         listener
     }
 
-    pub fn callback<F>(&mut self, t:F)
+    pub fn set_closure<F>(&mut self, t:F)
     where F: IntoWasmClosure<T> + 'static
     {
         let closure = Closure::new(t);
         let closure_js_value = closure.as_ref().clone();
-        //let c = ClosureType::WithResult(Arc::new(closure));
 
         *self.closure.lock().unwrap() = Some(Arc::new(closure));
         self.closure_js_value = closure_js_value;
