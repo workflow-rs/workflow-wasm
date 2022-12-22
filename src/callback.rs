@@ -223,7 +223,6 @@ impl<T> Into<JsValue> for Callback<T>
 where T: ?Sized + WasmClosure + 'static
 {
     fn into(self) -> JsValue{
-        // @surinder - pleae check
         self.closure_js_value.unchecked_into()
     }
 }
