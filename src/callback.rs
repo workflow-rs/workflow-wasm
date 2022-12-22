@@ -31,8 +31,8 @@ pub enum Error{
     /// LockError message resulting from Mutex lock failure ([`std::sync::PoisonError`])
     #[error("LockError: Unable to lock closure, {0:?}")]
     LockError(String),
-    #[error("ClosureNotIntialized, Please use `callback.callback()`")]
 
+    #[error("ClosureNotIntialized, Please use `callback.set_closure()`")]
     /// Results from trying to access a closure value when the closure is not initialized.
     ClosureNotInitialized
 }
