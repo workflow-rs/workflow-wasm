@@ -12,6 +12,8 @@ pub use crate::timers::{
     TimeoutHandle,
     set_interval,
     set_timeout,
+    clear_interval,
+    clear_timeout
 };
 
 pub use workflow_wasm_macros::callback;
