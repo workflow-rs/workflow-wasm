@@ -154,11 +154,10 @@ where T: ?Sized + WasmClosure + 'static
     pub fn create<F>(t:F)->Self
     where F: IntoWasmClosure<T> + 'static
     {
-        // let mut listener = Self::new();
-        let mut listener = Callback::<T>::default();
-        listener.set_closure(t);
+        let mut callback = Callback::<T>::default();
+        callback.set_closure(t);
 
-        listener
+        callback
     }
 
     /// Set closure in the given [`Callback`] instance.
