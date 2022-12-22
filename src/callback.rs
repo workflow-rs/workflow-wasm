@@ -108,7 +108,7 @@ where T: ?Sized + WasmClosure + 'static
         }
     }
 }
-macro_rules! create_traits {
+macro_rules! create_fns {
     ($(
         ($name: ident, $($var:ident)*)
     )*) => ($(        
@@ -124,9 +124,9 @@ macro_rules! create_traits {
     )*)
 }
 impl<T> Callback<T>{
-    create_traits! {
+    create_fns! {
         (new_with_args_0, )
-        (new, A)
+        (new_with_args_1, A)
         (new_with_args_2, A B)
         (new_with_args_3, A B C)
         (new_with_args_4, A B C D)
@@ -135,28 +135,18 @@ impl<T> Callback<T>{
         (new_with_args_7, A B C D E F G)
         (new_with_args_8, A B C D E F G H)
     }
-}
 
-
-pub trait CallbackTrait11<T, V1, R>{
-    fn new(callback:T)->Callback<dyn FnMut(V1)->R>
-    where 
-        T: FnMut(V1)->R,
-        V1: FromWasmAbi + 'static,
-        R: ReturnWasmAbi + 'static;
-}
-
-impl<T, V1, R> CallbackTrait11<T, V1, R> for Callback<T>
-where
-    T: 'static + FnMut(V1)->R,
-    V1: FromWasmAbi + 'static,
-    R: ReturnWasmAbi + 'static
-{
-    fn new(callback:T)->Callback<dyn FnMut(V1)->R>
+    /// Create a new [`Callback`] instance with the given closure.
+    pub fn new<A, R>(callback: T) -> Callback<dyn FnMut(A) -> R>
+    where
+        T: 'static + FnMut(A) -> R,
+        A: FromWasmAbi + 'static,
+        R: ReturnWasmAbi + 'static,
     {
         Callback::create(callback)
     }
 }
+
 impl<T> Callback<T>
 where T: ?Sized + WasmClosure + 'static
 {
