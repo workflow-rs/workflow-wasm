@@ -111,28 +111,7 @@ where T: ?Sized + WasmClosure + 'static
 macro_rules! create_traits {
     ($(
         ($name: ident, $($var:ident)*)
-    )*) => ($(
-        /*
-        pub trait $name<T, $($var,)* R>{
-            fn new(callback:T)->Callback<dyn FnMut($($var,)*)->R>
-            where 
-                T: 'static + FnMut($($var,)*)->R,
-                $($var: FromWasmAbi + 'static,)*
-                R: ReturnWasmAbi + 'static;
-        }
-
-        impl<T, $($var,)* R> $name<T, $($var,)* R> for Callback<T>{
-            fn new(callback:T)->Callback<dyn FnMut($($var,)*)->R>
-            where 
-                T: 'static + FnMut($($var,)*)->R,
-                $($var: FromWasmAbi + 'static,)*
-                R: ReturnWasmAbi + 'static
-                {
-                    Callback::create(callback)
-                }
-        }
-        */
-        
+    )*) => ($(        
         pub fn $name<$($var,)* R>(callback:T)->Callback<dyn FnMut($($var,)*)->R>
         where 
             T: 'static + FnMut($($var,)*)->R,

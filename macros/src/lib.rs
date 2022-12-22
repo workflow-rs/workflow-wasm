@@ -1,11 +1,5 @@
 use proc_macro::TokenStream;
-use syn::{
-    //DeriveInput,
-    parse_macro_input,
-    //parse::{ParseStream,Parse},
-    //ext::IdentExt,
-    //Meta, NestedMeta
-};
+use syn::parse_macro_input;
 use quote::ToTokens;
 use proc_macro_error::proc_macro_error;
 mod callback;
