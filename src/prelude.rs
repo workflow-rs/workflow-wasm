@@ -4,9 +4,6 @@ pub use crate::callback::{
     CallbackClosureWithoutResult,
     CallbackId,
     CallbackMap,
-    //CallbackTrait0,
-    //CallbackTrait1,
-    //CallbackTrait2,
     AsCallback
 };
 
