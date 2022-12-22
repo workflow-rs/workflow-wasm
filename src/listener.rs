@@ -9,7 +9,7 @@ use wasm_bindgen::{
     JsCast,
     closure::{Closure, WasmClosure, IntoWasmClosure}
 };
-use workflow_core::id::Id;
+pub use workflow_core::id::Id;
 use std::sync::{Arc, Mutex};
 use thiserror::Error;
 
