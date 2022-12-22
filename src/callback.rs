@@ -6,7 +6,8 @@
 use wasm_bindgen::{
     JsValue,
     JsCast,
-    closure::{Closure, WasmClosure, IntoWasmClosure}
+    closure::{Closure, WasmClosure, IntoWasmClosure},
+    convert::{FromWasmAbi, ReturnWasmAbi}
 };
 use workflow_core::id::Id;
 use std::{sync::{Arc, Mutex, MutexGuard}, collections::HashMap};
@@ -107,22 +108,81 @@ where T: ?Sized + WasmClosure + 'static
         }
     }
 }
+macro_rules! create_traits {
+    ($(
+        ($name: ident, $($var:ident)*)
+    )*) => ($(
+        /*
+        pub trait $name<T, $($var,)* R>{
+            fn new(callback:T)->Callback<dyn FnMut($($var,)*)->R>
+            where 
+                T: 'static + FnMut($($var,)*)->R,
+                $($var: FromWasmAbi + 'static,)*
+                R: ReturnWasmAbi + 'static;
+        }
 
+        impl<T, $($var,)* R> $name<T, $($var,)* R> for Callback<T>{
+            fn new(callback:T)->Callback<dyn FnMut($($var,)*)->R>
+            where 
+                T: 'static + FnMut($($var,)*)->R,
+                $($var: FromWasmAbi + 'static,)*
+                R: ReturnWasmAbi + 'static
+                {
+                    Callback::create(callback)
+                }
+        }
+        */
+        
+        pub fn $name<$($var,)* R>(callback:T)->Callback<dyn FnMut($($var,)*)->R>
+        where 
+            T: 'static + FnMut($($var,)*)->R,
+            $($var: FromWasmAbi + 'static,)*
+            R: ReturnWasmAbi + 'static
+        {
+            Callback::create(callback)
+        }
+        
+    )*)
+}
+impl<T> Callback<T>{
+    create_traits! {
+        (new_with_args_0, )
+        (new, A)
+        (new_with_args_2, A B)
+        (new_with_args_3, A B C)
+        (new_with_args_4, A B C D)
+        (new_with_args_5, A B C D E)
+        (new_with_args_6, A B C D E F)
+        (new_with_args_7, A B C D E F G)
+        (new_with_args_8, A B C D E F G H)
+    }
+}
+
+
+pub trait CallbackTrait11<T, V1, R>{
+    fn new(callback:T)->Callback<dyn FnMut(V1)->R>
+    where 
+        T: FnMut(V1)->R,
+        V1: FromWasmAbi + 'static,
+        R: ReturnWasmAbi + 'static;
+}
+
+impl<T, V1, R> CallbackTrait11<T, V1, R> for Callback<T>
+where
+    T: 'static + FnMut(V1)->R,
+    V1: FromWasmAbi + 'static,
+    R: ReturnWasmAbi + 'static
+{
+    fn new(callback:T)->Callback<dyn FnMut(V1)->R>
+    {
+        Callback::create(callback)
+    }
+}
 impl<T> Callback<T>
 where T: ?Sized + WasmClosure + 'static
 {
-    // /// Create a new [`Callback`] instance with an empty closure.
-    // pub fn new()->Self{
-    //     Self{
-    //         id: CallbackId::new(),
-    //         closure: Arc::new(Mutex::new(None)),
-    //         closure_js_value: JsValue::null()
-    //     }
-    // }
-
     /// Create a new [`Callback`] instance with the given closure.
-    // pub fn with_closure<F>(t:F)->Self
-    pub fn new<F>(t:F)->Self
+    pub fn create<F>(t:F)->Self
     where F: IntoWasmClosure<T> + 'static
     {
         // let mut listener = Self::new();
@@ -177,8 +237,6 @@ where T: ?Sized + WasmClosure + 'static
 {
     fn as_ref(&self)-> &JsValue{
         self.closure_js_value.as_ref().unchecked_ref()
-
-        // self.into_js()
     }
 }
 
@@ -187,7 +245,7 @@ where T: ?Sized + WasmClosure + 'static
 {
     fn into(self) -> JsValue{
         // @surinder - pleae check
-        self.closure_js_value.unchecked_into()//.as_ref().unchecked_ref()
+        self.closure_js_value.unchecked_into()
     }
 }
 
@@ -197,19 +255,8 @@ where T: ?Sized + WasmClosure + 'static
 {
     fn as_ref(&self)-> &js_sys::Function{
         self.closure_js_value.as_ref().unchecked_ref()
-
-        // self.into_js()
     }
 }
-
-
-// impl<T> Into<js_sys::Function> for Callback<T> {
-//     fn into(self) -> js_sys::Function {
-//         self.closure_js_value.into() //.as_ref().unchecked_ref()
-//     }
-// }
-
-// impl<T> Into<JsValue
 
 /// Collection of callbacks contained in a [`std::collections::HashMap`].
 #[derive(Clone)]
