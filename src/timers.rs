@@ -26,20 +26,25 @@ impl From<JsValue> for Error {
 }
 
 pub mod native {
+    //! bindings to JavaScript functions
     use js_sys::Function;
     use wasm_bindgen::prelude::*;
     #[wasm_bindgen]
     extern "C" {
 
+        /// [`mod@wasm_bindgen`] binding to the native JavaScript [`setInterval()`](https://developer.mozilla.org/en-US/docs/Web/API/setInterval) function
         #[wasm_bindgen (catch, js_name = setInterval)]
         pub fn set_interval(closure: &Function, timeout: u32 ) -> std::result::Result<u32, JsValue>;
-
+        
+        /// [`mod@wasm_bindgen`] binding to the native JavaScript [`clearInterval()`](https://developer.mozilla.org/en-US/docs/Web/API/clearInterval) function
         #[wasm_bindgen (catch, js_name = clearInterval)]
         pub fn clear_interval(interval: u32) -> std::result::Result<(), JsValue>;
-
+        
+        /// [`mod@wasm_bindgen`] binding to the native JavaScript [`setTimeout()`](https://developer.mozilla.org/en-US/docs/Web/API/setTimeout) function
         #[wasm_bindgen (catch, js_name = setTimeout)]
         pub fn set_timeout(closure: &Function, timeout: u32) -> std::result::Result<u32, JsValue>;
-
+        
+        /// [`mod@wasm_bindgen`] binding to the native JavaScript [`clearTimeout()`](https://developer.mozilla.org/en-US/docs/Web/API/clearTimeout) function
         #[wasm_bindgen (catch, js_name = clearTimeout)]
         pub fn clear_timeout(interval: u32) -> std::result::Result<(), JsValue>;
 
