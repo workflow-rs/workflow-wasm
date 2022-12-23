@@ -72,11 +72,16 @@ pub trait AsCallback {
 /// [`Callback`] is a struct that owns a given Rust closure 
 /// meant to be bound to JavaScript as a callback.
 ///
-#[derive(Debug)]
 pub struct Callback<T: ?Sized>{
     id: CallbackId,
     closure: Arc<Mutex<Option<Arc<Closure<T>>>>>,
     closure_js_value: JsValue
+}
+
+impl<T: ?Sized> std::fmt::Debug for Callback<T>{
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "Callback{{ id:\"{}\" }}", self.id)
+    }
 }
 
 impl<T> AsCallback for Callback<T>
@@ -229,6 +234,12 @@ where T: ?Sized + WasmClosure + 'static
 #[derive(Clone)]
 pub struct CallbackMap {
     inner : Arc<Mutex<HashMap<CallbackId, Arc<dyn AsCallback>>>>
+}
+
+impl std::fmt::Debug for CallbackMap{
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "CallbackMap{{...}}")
+    }
 }
 
 impl CallbackMap {

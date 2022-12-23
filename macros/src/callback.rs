@@ -24,11 +24,11 @@ impl Parse for Callback{
                     Ident::new(&format!("new_with_args_{}", len), Span::call_site())
                 };
 
-                quote!{Callback::#fn_name(#closure)}
+                quote!{workflow_wasm::callback::Callback::#fn_name(#closure)}
             }
             Err(_)=>{
                 let ts = input.cursor().token_stream();
-                quote!{Callback::new(#ts)}
+                quote!{workflow_wasm::callback::Callback::new(#ts)}
             }
         };
 
