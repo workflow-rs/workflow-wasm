@@ -4,7 +4,8 @@ pub use crate::callback::{
     CallbackClosureWithoutResult,
     CallbackId,
     CallbackMap,
-    AsCallback
+    AsCallback,
+    callback,
 };
 
 pub use crate::timers::{
@@ -16,4 +17,4 @@ pub use crate::timers::{
     clear_timeout
 };
 
-pub use workflow_wasm_macros::callback;
+// pub use workflow_wasm_macros::callback;

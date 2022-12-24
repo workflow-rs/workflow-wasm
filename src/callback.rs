@@ -280,3 +280,89 @@ impl CallbackMap {
     }
 
 }
+
+/// 
+/// creates a [Callback] instance 
+/// by inspecting a given closure signature
+/// 
+/// ```
+/// // include dependencies
+/// use workflow_wasm::prelude::*;
+/// ```
+/// <div class="example-wrap compile_fail"><pre class="compile_fail" style="white-space:normal;font:inherit;">
+///
+/// **Warning**: the [`macro@callback`] macro expects to receive a closure as an argument
+/// and will use this closure's signature to determine which [`Callback`] binding function
+/// to use.  However, if you declare a closure as a variable and then try to pass
+/// it to the [`macro@callback`] macro, the macro will fail with an error as follows: 
+/// "closure is expected to take 1 argument"
+/// 
+/// </pre></div>
+/// 
+/// - #### If passing closure as variable, it will accept only 1 argument:
+/// ```
+/// let closure_as_variable = |value:bool|{
+///     ...
+/// };
+/// let callback = callback!(closure_as_variable);
+/// ```
+/// The above code will create callback like this:
+/// ```
+/// let callback = Callback::new(closure_as_variable);
+/// ```
+/// 
+/// - #### Examples of incorrect use: 
+///
+/// ```compile_fail
+/// // 2 arguments
+/// let closure_as_variable = |arg1:bool, arg2:u16|{
+///     ...
+/// };
+/// let callback = callback!(closure_as_variable);
+/// ```
+/// 
+/// ```compile_fail
+/// // no arguments
+/// let closure_as_variable = ||{
+///     ...
+/// };
+/// let callback = callback!(closure_as_variable);
+/// ```
+/// 
+/// - #### If you have closure variable with more or less than 1 argument, you can use on the the following direct methods:
+///     - [Callback::new_with_args_0]
+///     - [Callback::new_with_args_1]
+///     - [Callback::new_with_args_2]
+///     - [Callback::new_with_args_3]
+///     - [Callback::new_with_args_4]
+///     - [Callback::new_with_args_5]
+///     - [Callback::new_with_args_6]
+///     - [Callback::new_with_args_7]
+///     - [Callback::new_with_args_8]
+///
+/// - #### A closure supplied directly to the [`callback`] macro can accept 0-8 arguments:
+///     ```
+///     let callback = callback!(|value:bool|{
+///         //
+///     });
+///     ```
+///     Output will be as follows:
+///     ```
+///     let callback = Callback::new_with_args_1(|value:bool|{
+///         //
+///     });
+///     ```
+/// - ##### Example of a closure with 2 arguments:
+///     ```
+///     let callback = callback!(|arg1:u16, value:bool|{
+///         //
+///     });
+///     ```
+///     Output will be as follows:
+///     ```
+///     let callback = Callback::new_with_args_2(|arg1:u16, value:bool|{
+///        //
+///     });
+///     ```
+/// 
+pub use workflow_wasm_macros::callback;
