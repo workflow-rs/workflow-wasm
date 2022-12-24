@@ -12,4 +12,5 @@ pub mod utils;
 pub mod callback;
 pub mod panic;
 pub mod init;
+pub mod options;
 pub mod prelude;
