@@ -18,7 +18,7 @@ pub type CallbackId = Id;
 
 /// Errors produced by the [`callback`](self) module
 #[derive(Error, Debug)]
-pub enum Error{
+pub enum CallbackError {
 
     /// Custom error message
     #[error("String {0:?}")]
@@ -37,25 +37,25 @@ pub enum Error{
     ClosureNotInitialized
 }
 
-impl From<JsValue> for Error {
+impl From<JsValue> for CallbackError {
     fn from(value: JsValue) -> Self {
-        Error::JsValue(value)
+        CallbackError::JsValue(value)
     }
 }
 
-impl From<Error> for JsValue {
-    fn from(err: Error) -> Self {
+impl From<CallbackError> for JsValue {
+    fn from(err: CallbackError) -> Self {
         JsValue::from_str(&err.to_string())
     }
 }
 
-impl From<String> for Error{
+impl From<String> for CallbackError{
     fn from(str: String) -> Self {
         Self::String(str)
     }
 }
 
-pub type Result<T> = std::result::Result<T, Error>;
+pub type CallbackResult<T> = std::result::Result<T, CallbackError>;
 
 /// Callback Closure that produces a [`wasm_bindgen::JsValue`] error
 pub type CallbackClosure<T> = dyn FnMut(T) -> std::result::Result<(), JsValue>;
@@ -185,7 +185,7 @@ where T: ?Sized + WasmClosure + 'static
 
     /// Obtain an [`std::sync::Arc`] of the given closure.
     /// Returns [`Error::ClosureNotInitialized`] if the closure is `None`.
-    pub fn closure(&self) -> Result<Arc<Closure<T>>>
+    pub fn closure(&self) -> CallbackResult<Arc<Closure<T>>>
     {
         match self.closure.lock(){
             Ok(locked)=>{
@@ -194,12 +194,12 @@ where T: ?Sized + WasmClosure + 'static
                         Ok(c.clone())
                     }
                     None=>{
-                        return Err(Error::ClosureNotInitialized)
+                        return Err(CallbackError::ClosureNotInitialized)
                     }
                 }
             }
             Err(err)=>{
-                return Err(Error::LockError(err.to_string()))
+                return Err(CallbackError::LockError(err.to_string()))
             }
         }
     }
@@ -256,7 +256,7 @@ impl CallbackMap {
     }
 
     /// Insert a new callback into the collection
-    pub fn insert<L>(&self, callback:L)->Result<()>
+    pub fn insert<L>(&self, callback:L)->CallbackResult<()>
     where
         L: Sized + AsCallback + 'static
     {
@@ -264,17 +264,17 @@ impl CallbackMap {
 
         self.inner
             .lock()
-            .map_err(|err| Error::LockError(err.to_string()))?
+            .map_err(|err| CallbackError::LockError(err.to_string()))?
             .insert(id, Arc::new(callback));
 
         Ok(())
     }
 
     /// Remove a callback from the collection
-    pub fn remove(&self, id:&CallbackId)->Result<Option<Arc<dyn AsCallback>>> {
+    pub fn remove(&self, id:&CallbackId)->CallbackResult<Option<Arc<dyn AsCallback>>> {
         let v = self.inner
             .lock()
-            .map_err(|err| Error::LockError(err.to_string()))?
+            .map_err(|err| CallbackError::LockError(err.to_string()))?
             .remove(id);
         Ok(v)
     }
