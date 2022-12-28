@@ -78,6 +78,9 @@ pub struct Callback<T: ?Sized>{
     closure_js_value: JsValue
 }
 
+unsafe impl<T:?Sized> Send for Callback<T>{}
+unsafe impl<T:?Sized> Sync for Callback<T>{}
+
 impl<T: ?Sized> std::fmt::Debug for Callback<T>{
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "Callback{{ id:\"{}\" }}", self.id)
